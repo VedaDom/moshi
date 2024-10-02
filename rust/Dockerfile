@@ -5,6 +5,8 @@ FROM nvidia/cuda:12.6.0-devel-ubuntu22.04
 RUN apt-get update && apt-get install -y \
     curl \
     build-essential \
+    pkg-config \
+    libssl-dev \
     openssl \
     python3 \
     python3-pip \
@@ -33,4 +35,4 @@ RUN pip3 install rustymimi
 EXPOSE 8998
 
 # Command to run the application
-CMD ["./target/release/moshi-backend", "--config", "moshi-backend/config-q8.json", "standalone"]
+CMD ["./target/release/moshi-backend", "--config", "moshi-backend/config.json", "standalone"]
