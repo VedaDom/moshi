@@ -1,8 +1,18 @@
-# Use an official Rust image as the base
-FROM rust:latest
+# Use NVIDIA CUDA image as the base
+FROM nvidia/cuda:12.6.0-devel-ubuntu22.04
 
-# Install OpenSSL and Python3
-RUN apt-get update && apt-get install -y openssl python3 python3-pip
+# Install necessary packages
+RUN apt-get update && apt-get install -y \
+    curl \
+    build-essential \
+    openssl \
+    python3 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Set the working directory in the container
 WORKDIR /usr/src/moshi
@@ -13,7 +23,7 @@ COPY . .
 # Generate SSL certificates
 RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes -subj "/CN=localhost"
 
-# Build the Rust project
+# Build the Rust project with CUDA features
 RUN cargo build --release --features cuda --bin moshi-backend
 
 # Install rustymimi Python package
@@ -23,4 +33,4 @@ RUN pip3 install rustymimi
 EXPOSE 8998
 
 # Command to run the application
-CMD ["cargo", "run", "--features", "cuda", "--bin", "moshi-backend", "--release", "--", "--config", "moshi-backend/config-q8.json", "standalone"]
+CMD ["./target/release/moshi-backend", "--config", "moshi-backend/config-q8.json", "standalone"]
